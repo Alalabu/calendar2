@@ -52,35 +52,35 @@ toBothDate(types) | CalendarTypes | object | 查询当前时间所处范围的�
 > -- text [string] : 日期的 `yyyy-mm-dd` 格式化字符串  
 > 3. 例如当前的时间为：`2019-12-30`  
 > -- **当 `types=YEAR` 时：**  
-``` json
+``` js
 { 
   beginDay: { year: 2019, month: 0, day: 1, text: '2019-1-1' },
   endDay: { year: 2019, month: 11, day: 31, text: '2019-12-31' } 
 }
 ``` 
 > -- **当 `types=QUARTER` 时：**  
-``` json
+``` js
 { 
   beginDay: { year: 2019, month: 9, day: 1, text: '2019-10-1' },
   endDay: { year: 2019, month: 11, day: 31, text: '2019-12-31' }
 }
 ``` 
 > -- **当 `types=MONTH` 时：**  
-``` json
+``` js
 { 
   beginDay: { year: 2019, month: 11, day: 1, text: '2019-12-1' },
   endDay: { year: 2019, month: 11, day: 31, text: '2019-12-31' }
 }
 ``` 
 > -- **当 `types=WEEK` 时：**  
-``` json
+``` js
 { 
   beginDay: { year: 2019, month: 11, day: 29, text: '2019-12-29' },
   endDay: { year: 2020, month: 0, day: 4, text: '2020-1-4' }
 }
 ``` 
 > -- **当 `types=WEEKOFMONTH` 时，返回结果为本月所有周范围数据：**  
-``` json
+``` js
 { weeks:
    [ { begin: '2019-12-01',
        end: '2019-12-07',
