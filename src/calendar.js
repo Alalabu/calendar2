@@ -67,6 +67,9 @@ class Calendar extends Date {
             case CalendarTypes.MONTH:
                 this.setMonth(this.getMonth() + value);
                 break;
+            case CalendarTypes.WEEK:
+                this.setDate(this.getDate() + (value * 7));
+                break;
             case CalendarTypes.DAY:
                 this.setDate(this.getDate() + value);
                 break;
@@ -85,6 +88,29 @@ class Calendar extends Date {
     }
     getFullYear() {
         return super.getFullYear();
+    }
+    getQuarter() {
+        const month = super.getMonth();
+        switch (month) {
+            case 0:
+            case 1:
+            case 2:
+                return 0;
+            case 3:
+            case 4:
+            case 5:
+                return 1;
+            case 6:
+            case 7:
+            case 8:
+                return 2;
+            case 9:
+            case 10:
+            case 11:
+                return 3;
+            default:
+                return null;
+        }
     }
     getMonth() {
         return super.getMonth();
@@ -243,11 +269,14 @@ class Calendar extends Date {
     /**
      * 获取最后一天(默认年)
      */
-    toLastDate() {
-        return moment(this).format('YYYY-MM-DD');
-    }
+    // toLastDate() {
+    //     return moment(this).format('YYYY-MM-DD');
+    // }
     toDatetime() {
         return moment(this).format('YYYY-MM-DD HH:mm:ss');
+    }
+    toTime() {
+        return moment(this).format('HH:mm:ss');
     }
     equalsDate(otherDate) {
         if ((otherDate instanceof Date && !(otherDate instanceof Calendar)) || typeof otherDate === 'string') {
