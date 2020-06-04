@@ -1,6 +1,6 @@
 {
   "name": "calendar2",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "just a calendar tools",
   "main": "index.js",
   "scripts": {

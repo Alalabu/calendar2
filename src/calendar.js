@@ -224,11 +224,14 @@ class Calendar extends Date {
             endDay.day = last.getDate();
             // 设置当前月的所有包含的周列表(如包含上个月的日子,也添加)
             const firstIndex = 0, lastIndex = 6;
-            const stepDate = date; //new Calendar(); // 步长日
+            const stepDate = new Calendar(date.toDate());// date; //new Calendar(); // 步长日
+            // const stepDate = date;// date; //new Calendar(); // 步长日
             const dayOfMonth = stepDate.getDate(); // 获取当前日子是本月的第几天
             stepDate.setDate(1);// 步长日, 从本月1日开始计算
             const stepMonth = stepDate.getMonth(); // 步长月份
             const weeks = [];
+            bothDate.todayIndex = -1; // 当前日期在 weeks 中若不存在, 则该值为 -1
+            let i = 0;
             while(stepDate.getMonth() === stepMonth){
                 // 0. 定义周范围的日期对象
                 const onceWeek = {begin: null, end: null, isCurrentWeek: false, raw: null};
@@ -241,21 +244,27 @@ class Calendar extends Date {
                 // 3. 设置这一周的第一天
                 onceWeek.begin = stepDate.toDate();
                 onceWeek.beginDate = stepDate.getDate(); // 开始的日份
+                onceWeek.beginOfMonth = `${stepDate.getMonth() + 1}/${stepDate.getDate()}`;
                 onceWeek.raw = `${stepDate.getMonth() + 1}/${stepDate.getDate()}  ~  `; // 设置简单的展示方式
                 // 4. 以当前日期为基准加 6 天, 寻找本周末尾时间
                 stepDate.add( lastIndex, CalendarTypes.DAY);
                 // 5. 设置这一周的最后一天
                 onceWeek.end = stepDate.toDate();
                 onceWeek.endDate = stepDate.getDate(); // 结束的日份
+                onceWeek.endOfMonth = `${stepDate.getMonth() + 1}/${stepDate.getDate()}`;
                 onceWeek.raw += `${stepDate.getMonth() + 1}/${stepDate.getDate()}`;
+                onceWeek.title = onceWeek.raw;
                 // 6. 判断是否是本周
                 if(dayOfMonth >= onceWeek.beginDate && dayOfMonth <= onceWeek.endDate){
                     onceWeek.isCurrentWeek = true;
+                    bothDate.todayIndex = i; // 当前日期所在 weeks 数组的索引位置
                 }
                 // 7. 将周数据填充到周数组中
                 weeks.push(onceWeek);
                 // 8. 以当前本周结束时间为基准, 增加一天, 作为下一天的初始时间
                 stepDate.add( 1, CalendarTypes.DAY);
+                // 9. 索引自增
+                i++;
             }
             bothDate.weeks = weeks;
         }

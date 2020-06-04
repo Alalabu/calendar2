@@ -60,7 +60,7 @@ const cal3 = new Calendar('2019-08-09'); // 构造传入一个日期字符串
 > 
 > **`WEEK`** : 周
 > 
-> **`WEEKOFMONTH`** : 表示选取当月所有的周范围列表，仅在函数 `toBothDate()` 调用时有效。
+> **`WEEKOFMONTH`** : 表示包含选取当月所有的周范围列表，仅在函数 `toBothDate()` 调用时有效。
 > 
 > **`DAY`** : 天
 > 
@@ -85,7 +85,7 @@ cal.add(-2, CalendarTypes.WEEK); // 表示在当前日期的基础上，减去�
 > 获取当前日期中的年份, 同 `Date.prototype.getFullYear()`。
 
 ### getQuarter()
-> 获取当前日期所表示的季度, 以 `0` 作为起始表示第一季度，以此类推。若解析错误则返回 null。
+> 获取当前日期所在的季度索引, 以 `0` 作为起始表示第一季度，以此类推。若解析错误则返回 null。
 
 ### getMonth()
 > 获取当前日期中的月份, 同 `Date.prototype.getMonth()`。
@@ -110,6 +110,23 @@ cal.add(-2, CalendarTypes.WEEK); // 表示在当前日期的基础上，减去�
 
 ### getTime()
 > 获取当前日期中的时间部分，返回字符串格式为 `HH:mm:ss`。
+
+#### 示例
+```js
+const now = new Calendar(); // 2020-06-04 16:42:05
+
+console.log('Year: ', now.getFullYear());     // return 2020
+console.log('Quarter: ', now.getQuarter());   // return 1
+console.log('Month: ', now.getMonth());       // return 5
+console.log('Date: ', now.getDate());         // return 4
+console.log('Hours: ', now.getHours());       // return 16
+console.log('Minutes: ', now.getMinutes());   // return 42
+console.log('Seconds: ', now.getSeconds());   // return 5
+
+console.log('toDate: ', now.toDate());        // return '2020-06-04'
+console.log('toDatetime: ', now.toDatetime());// return '2020-06-04 16:42:05'
+console.log('toTime: ', now.toTime());        // return '16:42:05'
+```
 
 
 ## 特殊函数部分
@@ -217,16 +234,21 @@ cal.toBothDate(CalendarTypes.WEEK);
 
 /**
  * 获取当前日期所在 周 的 起止日期, 包含当前月所包含的所有周列表
+ * 周日期的计算是从 星期日 作为第一天, 进行计数
  * 返回值: {
  *     beginDay: { year: 2020, month: 4, day: 17, text: '2020-5-17' }, 
  *     endDay: { year: 2020, month: 4, day: 23, text: '2020-5-23' },
+ *     todayIndex: 3,				// 当前日期所在weeks中的索引位置, 若无则值为 -1
  *     weeks: [ {
  *         begin: '2020-04-26',		// 完整的开始日期
  *         end: '2020-05-02',		// 完整的结束日期
  *         isCurrentWeek: false,	// 是否是当前日期所在的周
- *         raw: '4/26  ~  5/2',		// 简单字符串表示
+ *         raw: '4/26  ~  5/2',		// (待废弃, 勿用)
+ *         title: '4/26  ~  5/2',	// 简单字符串表示
  *         beginDate: 26,			// 开始日期的日份
  *         endDate: 2				// 结束日期的日份
+ *         beginOfMonth: '4/26',	// 包含月/日的开始日期
+ *         endOfMonth: '5/2',		// 包含月/日的结束日期
  *       },
  *       ...
  *       {
@@ -234,8 +256,11 @@ cal.toBothDate(CalendarTypes.WEEK);
  *         end: '2020-06-06',
  *         isCurrentWeek: false,
  *         raw: '5/31  ~  6/6',
+ *         title: '5/31  ~  6/6',
  *         beginDate: 31,
- *         endDate: 6
+ *         endDate: 6,
+ *         beginOfMonth: '5/31',
+ *         endOfMonth: '6/6',
  *       }
  *     ],
  * }
@@ -268,6 +293,14 @@ cal.add(+11, CalendarTypes.HOURS); // 增加 11 小时 :  2020-04-12 05:01:01
 
 ## 更新日志
 
+> **v1.0.6**（2020-6-4）：
+> 
+> * 修复了一个由 `cal.toBothDate(CalendarTypes.WEEKOFMONTH)`引发的当前日期对象值变化的问题。
+> 
+> * 为函数 `cal.toBothDate(CalendarTypes.WEEKOFMONTH)` 的返回值添加属性 `todayIndex`, 表示当前日期在 `weeks` 周数组中的索引位置。若不存在，则该值为 `-1`。
+> 
+> * 为函数 `cal.toBothDate(CalendarTypes.WEEKOFMONTH)` 的 `weeks` 数组对象添加属性：`title`、`beginOfMonth`、`endOfMonth`, 并预计废除属性 `raw`。
+> 
 > **v1.0.5**（2020-6-4）：
 > 
 > * 添加函数 `calendar.getQuarter()`，表示当前日期的季度索引，从 `0` 作为起始表示第一季度，以此类推。若解析错误则返回 `null`。
