@@ -38,7 +38,9 @@ Description here.
 
 ## 构造函数
 > new Calendar(); // 当前时间
+> 
 > new Calendar( Date ); // 构造 `Date` 对象所表示的日期
+> 
 > new Calendar( datestring ); // 构造 `datestring` 字符串所表示的日期
 
 #### 示例
@@ -51,13 +53,21 @@ const cal3 = new Calendar('2019-08-09'); // 构造传入一个日期字符串
 ```
 ## 枚举
 > **`YEAR`** : 年
+> 
 > **`QUARTER`** : 季度
+> 
 > **`MONTH`** : 月
+> 
 > **`WEEK`** : 周
+> 
 > **`WEEKOFMONTH`** : 表示选取当月所有的周范围列表，仅在函数 `toBothDate()` 调用时有效。
+> 
 > **`DAY`** : 天
+> 
 > **`HOURS`** : 小时
+> 
 > **`MINUTES`** : 分
+> 
 > **`SECONDS`** : 秒
 
 #### 示例
@@ -106,10 +116,13 @@ cal.add(-2, CalendarTypes.WEEK); // 表示在当前日期的基础上，减去�
 
 ### equalsDate(otherDate)
 > 由于 `object != object`, 因此函数简化了日期对比方式。
+> 
 > 对比一个日期，如果一致则返回 `true`，反之返回 `false`。
+> 
 > **仅对比日期部分**
 > 
 > `参数` : string | Date | Calendar
+> 
 > `返回值` : boolean
 
 #### 示例
@@ -127,10 +140,13 @@ cal01.equalsDate('2020-01-02 12:12:12'); // 返回: false
 
 ### equalsDateTime(otherDate)
 > 由于 `object != object`, 因此函数简化了日期对比方式。
+> 
 > 对比一个日期和时间，如果一致则返回 `true`，反之返回 `false`。
+> 
 > **对比 日期 + 时间 部分**
 > 
 > `参数` : string | Date | Calendar
+> 
 > `返回值` : boolean
 
 #### 示例
@@ -147,9 +163,12 @@ cal01.equalsDateTime('2020-01-01 12:12:12'); // 返回: true
 ```
 
 ### toBothDate(types)
-> 查询 **当前日期** 所处范围的 `开始日期` 和 `结束日期` ，`types` 可选值有：`CalendarTypes.YEAR`、`CalendarTypes.QUARTER`、`CalendarTypes.MONTH`、`CalendarTypes.WEEK`、`CalendarTypes.WEEKOFMONTH`。
+> 查询 **当前日期** 所处范围的 `开始日期` 和 `结束日期` 
+> 
+> `types` 可选枚举有：`YEAR`、`QUARTER`、`MONTH`、`WEEK`、`WEEKOFMONTH`。
 > 
 > `参数` : CalendarTypes
+> 
 > `返回值` : object
 
 #### 示例
@@ -226,13 +245,16 @@ cal.toBothDate(CalendarTypes.WEEKOFMONTH);
 
 ### add(value, types)
 > 在当前日期值基础上进行 **±** 运算
+> 
 > 函数并不会返回一个新值，**而是对原有 `Calendar` 对象进行日期变更。**
 > 
 > `参数` : 
-> - **value** [number] 一个正（负）整数，表示日期变更量
-> - **types** [CalendarTypes] 可选值有：`YEAR`、`MONTH`、`WEEK`、`DAY`、`HOURS`、`MINUTES`、`SECONDS`。
 > 
-> `返回值` : 无
+> - **value** [number] 一个正（负）整数，表示日期变更量
+> 
+> - **types** [CalendarTypes] 可选枚举有：`YEAR`、`MONTH`、`WEEK`、`DAY`、`HOURS`、`MINUTES`、`SECONDS`。
+> 
+> `返回值` : `undefined`
 
 #### 示例
 ```js
@@ -246,8 +268,10 @@ cal.add(+11, CalendarTypes.HOURS); // 增加 11 小时 :  2020-04-12 05:01:01
 
 ## 更新日志
 
-> **v1.0.4**（2020-6-4）：
+> **v1.0.5**（2020-6-4）：
+> 
 > * 添加函数 `calendar.getQuarter()`，表示当前日期的季度索引，从 `0` 作为起始表示第一季度，以此类推。若解析错误则返回 `null`。
+> 
 > * 添加函数 `calendar.toTime()`，表示当前日期的时间部分字符串，格式为 `hh:mm:ss`。
 
 > **v1.0.3**（2019-9-16）：添加新的范围选取类型 `CalendarTypes.WEEKOFMONTH`，表示选取当月所有的周范围列表。返回对象包含一个 `weeks` 属性，从前至后描述所有的周取值范围对象。详见**日期取值范围**中的描述。
