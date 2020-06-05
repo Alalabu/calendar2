@@ -293,6 +293,10 @@ cal.add(+11, CalendarTypes.HOURS); // 增加 11 小时 :  2020-04-12 05:01:01
 
 ## 更新日志
 
+> **v1.0.7**（2020-6-5）：
+> 
+> * 修复一个 `toBothDate(CalendarTypes.WEEKOFMONTH)` 过程中监测本周位置的问题。
+> 
 > **v1.0.6**（2020-6-4）：
 > 
 > * 修复了一个由 `cal.toBothDate(CalendarTypes.WEEKOFMONTH)`引发的当前日期对象值变化的问题。
