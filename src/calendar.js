@@ -246,6 +246,7 @@ class Calendar extends Date {
                 onceWeek.beginDate = stepDate.getDate(); // 开始的日份
                 onceWeek.beginOfMonth = `${stepDate.getMonth() + 1}/${stepDate.getDate()}`;
                 onceWeek.raw = `${stepDate.getMonth() + 1}/${stepDate.getDate()}  ~  `; // 设置简单的展示方式
+                const weekMonthBegin = stepDate.getMonth(); // 本周开始日期的月份
                 // 4. 以当前日期为基准加 6 天, 寻找本周末尾时间
                 stepDate.add( lastIndex, CalendarTypes.DAY);
                 // 5. 设置这一周的最后一天
@@ -253,9 +254,21 @@ class Calendar extends Date {
                 onceWeek.endDate = stepDate.getDate(); // 结束的日份
                 onceWeek.endOfMonth = `${stepDate.getMonth() + 1}/${stepDate.getDate()}`;
                 onceWeek.raw += `${stepDate.getMonth() + 1}/${stepDate.getDate()}`;
+                const weekMonthEnd = stepDate.getMonth(); // 本周结束日期的月份
                 onceWeek.title = onceWeek.raw;
                 // 6. 判断是否是本周
-                if(dayOfMonth >= onceWeek.beginDate && dayOfMonth <= onceWeek.endDate){
+                if (stepMonth > weekMonthBegin && dayOfMonth <= onceWeek.endDate) {
+                    // 本周开始月份为上月, 但 对比日 小于等于本周结束日期时, 此周为 对比日 所在的周
+                    onceWeek.isCurrentWeek = true;
+                    bothDate.todayIndex = i; // 当前日期所在 weeks 数组的索引位置
+                }
+                else if (stepMonth < weekMonthEnd && dayOfMonth >= onceWeek.beginDate) {
+                    // 本周结束月份为下月, 但 对比日 大于等于本周开始日期时, 此周为 对比日 所在的周
+                    onceWeek.isCurrentWeek = true;
+                    bothDate.todayIndex = i; // 当前日期所在 weeks 数组的索引位置
+                }
+                else if (stepMonth === weekMonthBegin && stepMonth === weekMonthEnd && dayOfMonth >= onceWeek.beginDate && dayOfMonth <= onceWeek.endDate){
+                    // 日期都在本月内对比方式
                     onceWeek.isCurrentWeek = true;
                     bothDate.todayIndex = i; // 当前日期所在 weeks 数组的索引位置
                 }
