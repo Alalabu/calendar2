@@ -1,8 +1,12 @@
 {
   "name": "calendar2",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "just a calendar tools",
   "main": "index.js",
+  "keywords": [
+    "Date",
+    "Calendar"
+  ],
   "scripts": {
     "test-base": "node test/base.test.js",
     "test-equals": "node test/equals.test.js",

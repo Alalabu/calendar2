@@ -132,8 +132,11 @@ class Calendar extends Date {
     }
     /**
      * 一个时间所属范围(年、季、月、周)中的第一天和最后一天
+     * @param {CalendarTypes} type 选取范围的粒度枚举
+     * @param {Object} options
+     *  - options.compleZero {Boolean} 是否为返回值的文本补齐 0，影响月份和日期文本 text 字段
      */
-    toBothDate(type = CalendarTypes.YEAR) {
+    toBothDate(type = CalendarTypes.YEAR, { compleZero } = { compleZero: false }) {
         // 当前时间对象
         // const date = anthorDate ? new Date(anthorDate) : this;
         const date = this;
@@ -281,8 +284,15 @@ class Calendar extends Date {
             }
             bothDate.weeks = weeks;
         }
-        beginDay.text = [beginDay.year, (beginDay.month + 1), beginDay.day].join('-');
-        endDay.text = [endDay.year, (endDay.month + 1), endDay.day].join('-');
+
+        // 是否为 text 文本日期中的字段补齐 0
+        if (compleZero) {
+            beginDay.text = [beginDay.year, (beginDay.month + 1), beginDay.day].map( d => `${d}`[1] ? d : `0${d}`).join('-');
+            endDay.text = [endDay.year, (endDay.month + 1), endDay.day].map( d => `${d}`[1] ? d : `0${d}`).join('-');
+        } else {
+            beginDay.text = [beginDay.year, (beginDay.month + 1), beginDay.day].join('-');
+            endDay.text = [endDay.year, (endDay.month + 1), endDay.day].join('-');
+        }
         // 设置返回结果
         bothDate.beginDay = beginDay;
         bothDate.endDay = endDay;

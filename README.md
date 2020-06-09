@@ -179,10 +179,12 @@ cal01.equalsDateTime(cal02); 		// 返回: false
 cal01.equalsDateTime('2020-01-01 12:12:12'); // 返回: true
 ```
 
-### toBothDate(types)
+### toBothDate(types, options)
 > 查询 **当前日期** 所处范围的 `开始日期` 和 `结束日期` 
 > 
 > `types` 可选枚举有：`YEAR`、`QUARTER`、`MONTH`、`WEEK`、`WEEKOFMONTH`。
+>
+> `options.compleZero`: 为返回数据中的文本字段 `text` 补全 `0`，即默认情况下返回值为 `{beginDay: { year: 2020, month: 0, day: 1, text: '2020-1-1' }}`，当设置 `options.compleZero = true` 时，返回值为：`{beginDay: { year: 2020, month: 0, day: 1, text: '2020-01-01' }}`。
 > 
 > `参数` : CalendarTypes
 > 
@@ -293,6 +295,11 @@ cal.add(+11, CalendarTypes.HOURS); // 增加 11 小时 :  2020-04-12 05:01:01
 
 ## 更新日志
 
+> **v1.0.8**（2020-6-9）：
+> 
+> * 添加可配置参数: `toBothDate(CalendarTypes, options)` 。
+> * options.compleZero: 为返回数据中的文本字段 `text` 补全 `0`,即默认情况下返回值为 `{beginDay: { year: 2020, month: 0, day: 1, text: '2020-1-1' }}`，当设置 `options.compleZero = true` 时，返回值为：`{beginDay: { year: 2020, month: 0, day: 1, text: '2020-01-01' }}`。
+> 
 > **v1.0.7**（2020-6-5）：
 > 
 > * 修复一个 `toBothDate(CalendarTypes.WEEKOFMONTH)` 过程中监测本周位置的问题。
