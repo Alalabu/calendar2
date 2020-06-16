@@ -32,6 +32,7 @@ Description here.
 
 ### 依赖
 - moment：`^2.24.0`
+- date-format: `^3.0.0`
 
 ## 安装
 > npm install calendar2 --save
@@ -84,8 +85,14 @@ cal.add(-2, CalendarTypes.WEEK); // 表示在当前日期的基础上，减去�
 ### getFullYear()
 > 获取当前日期中的年份, 同 `Date.prototype.getFullYear()`。
 
+### getDayOfYear()
+> 用于获取当前日期，是本年度中的第几天，返回一个 `Number` 格式的天数统计数字。
+
 ### getQuarter()
 > 获取当前日期所在的季度索引, 以 `0` 作为起始表示第一季度，以此类推。若解析错误则返回 null。
+
+### getDayOfQuarter()
+> 用于获取当前日期，是本季度中的第几天，返回一个 `Number` 格式的天数统计数字。
 
 ### getMonth()
 > 获取当前日期中的月份, 同 `Date.prototype.getMonth()`。
@@ -108,15 +115,20 @@ cal.add(-2, CalendarTypes.WEEK); // 表示在当前日期的基础上，减去�
 ### toDatetime()
 > 获取当前日期中的完整日期和时间部分，返回字符串格式为 `yyyy-MM-dd HH:mm:ss`。
 
-### getTime()
+### toTime()
 > 获取当前日期中的时间部分，返回字符串格式为 `HH:mm:ss`。
+
+### toFormat( format_str )
+> 用于返回自定义格式化的日期/时间文本，默认格式为 `yyyy-MM-dd hh:mm:ss`，具体可用格式化方案参考 [https://www.npmjs.com/package/date-format](https://www.npmjs.com/package/date-format "date-format")
 
 #### 示例
 ```js
 const now = new Calendar(); // 2020-06-04 16:42:05
 
 console.log('Year: ', now.getFullYear());     // return 2020
+console.log('Day Of Year: ', now.getDayOfYear());     // return 156
 console.log('Quarter: ', now.getQuarter());   // return 1
+console.log('Day Of Quarter: ', now.getDayOfQuarter());   // return 65
 console.log('Month: ', now.getMonth());       // return 5
 console.log('Date: ', now.getDate());         // return 4
 console.log('Hours: ', now.getHours());       // return 16
@@ -126,6 +138,7 @@ console.log('Seconds: ', now.getSeconds());   // return 5
 console.log('toDate: ', now.toDate());        // return '2020-06-04'
 console.log('toDatetime: ', now.toDatetime());// return '2020-06-04 16:42:05'
 console.log('toTime: ', now.toTime());        // return '16:42:05'
+console.log('toFormat: ', now.toFormat('yyyy年MM月dd日 hh:mm:ss'));        // return '2020年06月04日 16:42:05'
 ```
 
 
@@ -179,12 +192,14 @@ cal01.equalsDateTime(cal02); 		// 返回: false
 cal01.equalsDateTime('2020-01-01 12:12:12'); // 返回: true
 ```
 
-### toBothDate(types, options)
+### toBothDate(types, option)
 > 查询 **当前日期** 所处范围的 `开始日期` 和 `结束日期` 
 > 
-> `types` 可选枚举有：`YEAR`、`QUARTER`、`MONTH`、`WEEK`、`WEEKOFMONTH`。
+> -- `types` 可选枚举有：`YEAR`、`QUARTER`、`MONTH`、`WEEK`、`WEEKOFMONTH`。
 >
-> `options.compleZero`: 为返回数据中的文本字段 `text` 补全 `0`，即默认情况下返回值为 `{beginDay: { year: 2020, month: 0, day: 1, text: '2020-1-1' }}`，当设置 `options.compleZero = true` 时，返回值为：`{beginDay: { year: 2020, month: 0, day: 1, text: '2020-01-01' }}`。
+> -- `option.first_weekday`: 配置当前周首个的第一天是星期几，默认为 `0` 代表星期天，可选值范围：[0 ~ 6];
+> 
+> -- `option.format_str`: 配置当前日期范围返回的文本格式，默认为 `yyyy-MM-dd`;
 > 
 > `参数` : CalendarTypes
 > 
@@ -197,6 +212,8 @@ const cal = new Calendar('2020-05-20');
 /**
  * 获取当前日期所在年份的 起止日期
  * 返回值: {
+ *     today: '2020-05-20',
+ *     dayOfYear: 141,
  *     beginDay: { year: 2020, month: 0, day: 1, text: '2020-1-1' }, 
  *     endDay: { year: 2020, month: 11, day: 31, text: '2020-12-31' }
  * }
@@ -207,31 +224,50 @@ cal.toBothDate(CalendarTypes.YEAR);
 /**
  * 获取当前日期所在季度的 起止日期
  * 返回值: {
- *     beginDay: { year: 2020, month: 3, day: 1, text: '2020-4-1' }, 
- *     endDay: { year: 2020, month: 5, day: 30, text: '2020-6-30' }  
+ *     today: '2020年05月20日',
+ *     dayOfQuarter: 50,
+ *     beginDay: { year: 2020, month: 3, day: 1, text: '2020年04月01日' }, 
+ *     endDay: { year: 2020, month: 5, day: 30, text: '2020年06月30日' }  
  * }
  */
-cal.toBothDate(CalendarTypes.QUARTER);
+cal.toBothDate(CalendarTypes.QUARTER, {format_str: 'yyyy年MM月dd日'});
 
 
 /**
  * 获取当前日期所在月份的 起止日期
  * 返回值: {
- *     beginDay: { year: 2020, month: 4, day: 1, text: '2020-5-1' }, 
- *     endDay: { year: 2020, month: 4, day: 31, text: '2020-5-31' } 
+ *     today: '2020-05-20 00:00',
+ *     dayOfMonth: 20,
+ *     beginDay: { year: 2020, month: 4, day: 1, text: '2020-05-01 00:00' }, 
+ *     endDay: { year: 2020, month: 4, day: 31, text: '2020-05-31 23:59' } 
  * }
  */
-cal.toBothDate(CalendarTypes.MONTH);
+cal.toBothDate(CalendarTypes.MONTH, {format_str: 'yyyy-MM-dd hh:mm'});
 
 
 /**
  * 获取当前日期所在 周 的 起止日期
+ * 周首日默认从 0 (星期天) 开始计算
  * 返回值: {
- *     beginDay: { year: 2020, month: 4, day: 17, text: '2020-5-17' }, 
- *     endDay: { year: 2020, month: 4, day: 23, text: '2020-5-23' }
+ *     today: '2020年05月20日',
+ *     todayIndex: 3, // 表示当前周的第几天, 索引从 0 开始计算
+ *     beginDay: { year: 2020, month: 4, day: 17, text: '2020年05月17日' }, 
+ *     endDay: { year: 2020, month: 4, day: 23, text: '2020年05月23日' }
  * }
  */
-cal.toBothDate(CalendarTypes.WEEK);
+cal.toBothDate(CalendarTypes.WEEK, {format_str: 'yyyy年MM月dd日'});
+
+/**
+ * 获取当前日期所在 周 的 起止日期
+ * 周首日默认从 1 (星期一) 开始计算
+ * 返回值: {
+ *     today: '2020年05月20日',
+ *     todayIndex: 2,
+ *     beginDay: { year: 2020, month: 4, day: 18, text: '2020年05月18日' },
+ *     endDay: { year: 2020, month: 4, day: 24, text: '2020年05月24日' }
+ * }
+ */
+cal.toBothDate(CalendarTypes.WEEK, {first_weekday: 1, format_str: 'yyyy年MM月dd日'});
 
 
 /**
@@ -240,10 +276,13 @@ cal.toBothDate(CalendarTypes.WEEK);
  * 返回值: {
  *     beginDay: { year: 2020, month: 4, day: 17, text: '2020-5-17' }, 
  *     endDay: { year: 2020, month: 4, day: 23, text: '2020-5-23' },
+ *     today: '2020-05-20',
  *     todayIndex: 3,				// 当前日期所在weeks中的索引位置, 若无则值为 -1
  *     weeks: [ {
  *         begin: '2020-04-26',		// 完整的开始日期
  *         end: '2020-05-02',		// 完整的结束日期
+ *         begin_format: '2020-04-26', // 日期格式化之后的开始时间文本
+ *         end_format: '2020-05-02', // 日期格式化之后的结束时间文本
  *         isCurrentWeek: false,	// 是否是当前日期所在的周
  *         raw: '4/26  ~  5/2',		// (待废弃, 勿用)
  *         title: '4/26  ~  5/2',	// 简单字符串表示
@@ -256,6 +295,8 @@ cal.toBothDate(CalendarTypes.WEEK);
  *       {
  *         begin: '2020-05-31',
  *         end: '2020-06-06',
+ *         begin_format: '2020-05-31', // 日期格式化之后的开始时间文本
+ *         end_format: '2020-06-06', // 日期格式化之后的结束时间文本
  *         isCurrentWeek: false,
  *         raw: '5/31  ~  6/6',
  *         title: '5/31  ~  6/6',
@@ -294,7 +335,18 @@ cal.add(+11, CalendarTypes.HOURS); // 增加 11 小时 :  2020-04-12 05:01:01
 ```
 
 ## 更新日志
-
+> **v1.0.9**（2020-6-16）： ``
+> 
+> 1. **移除** `options.compleZero` 配置，所有返回的日期/时间文本，需要补齐 `0` 都会默认补齐；
+> 2. **添加** 函数 `getDayOfYear()`，用于获取当前日期，是本年度中的第几天；
+> 3. **添加** 函数 `getDayOfQuarter()`，用于获取当前日期，是本季度中的第几天；
+> 4. **添加** 函数 `toFormat(format_str)`，用于返回自定义格式化的日期/时间文本，默认格式为 `yyyy-MM-dd hh:mm:ss`，具体可用格式化方案参考 [https://www.npmjs.com/package/date-format](https://www.npmjs.com/package/date-format "date-format")；
+> 5. **修改** 函数 `toBothDate(type, option)` 中的 `option` 参数如下: 
+> -- `option.first_weekday`: 配置当前周首个的第一天是星期几，默认为 `0` 代表星期天，可选值范围：[0 ~ 6];
+> -- `option.format_str`: 配置当前日期范围返回的文本格式，默认为 `yyyy-MM-dd`;
+> 6. **修复** 其他已知问题;
+> 
+> 
 > **v1.0.8**（2020-6-9）：
 > 
 > * 添加可配置参数: `toBothDate(CalendarTypes, options)` 。

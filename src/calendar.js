@@ -1,5 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+const assert = require('assert');
+const dateFormat = require('date-format');
+const defaultDateFormat = 'yyyy-MM-dd'; // 默认的日期格式
+const defaultDatetimeFormat = 'yyyy-MM-dd hh:mm:ss'; // 默认的日期时间格式
 const moment = require("moment");
 var CalendarTypes;
 (function (CalendarTypes) {
@@ -89,6 +93,30 @@ class Calendar extends Date {
     getFullYear() {
         return super.getFullYear();
     }
+    // 获取当前日期在当前年份中是第几天
+    getDayOfYear() {
+        const year = super.getFullYear();
+        const isLeapYear = ( (year%4==0 && year%100!=0) || year%400 == 0);
+        const month = super.getMonth();
+
+        let monthNo = 1;
+        const months = month > 0 ? Array(month).fill(0).map(() => monthNo++) : [];
+        let days_count = 0; // 总天数
+        // 计算之前月份所累积的天数
+        for (const m of months) {
+            if (m == 1 || m == 3 || m == 5 || m == 7 || m == 8 || m == 10 || m == 12) {
+                days_count += 31;
+            } else if (m == 4 || m == 6 || m == 9 || m == 11) {
+                days_count += 30;
+            } else if (m == 2) {
+                days_count += (isLeapYear ? 29 : 28);
+            }
+        }
+        // 加当日本月第几天
+        days_count += this.getDate();
+        return days_count;
+    }
+
     getQuarter() {
         const month = super.getMonth();
         switch (month) {
@@ -112,6 +140,32 @@ class Calendar extends Date {
                 return null;
         }
     }
+    // 获取当前日期在当前季度中是第几天
+    getDayOfQuarter() {
+        const year = super.getFullYear();
+        const isLeapYear = ( (year%4==0 && year%100!=0) || year%400 == 0);
+        const month = super.getMonth();
+        const quarter = this.getQuarter();
+        const months = [];
+        // 获取当前季度之前月份数组
+        for (let i = quarter * 3 + 1; i <= month; i++) {
+            months.push(i);
+        }
+        let days_count = 0; // 总天数
+        // 计算之前月份所累积的天数
+        for (const m of months) {
+            if (m == 1 || m == 3 || m == 5 || m == 7 || m == 8 || m == 10 || m == 12) {
+                days_count += 31;
+            } else if (m == 4 || m == 6 || m == 9 || m == 11) {
+                days_count += 30;
+            } else if (m == 2) {
+                days_count += (isLeapYear ? 29 : 28);
+            }
+        }
+        // 加当日本月第几天
+        days_count += this.getDate();
+        return days_count;
+    }
     getMonth() {
         return super.getMonth();
     }
@@ -130,16 +184,31 @@ class Calendar extends Date {
     toDate() {
         return moment(this).format('YYYY-MM-DD');
     }
+    toDatetime() {
+        return moment(this).format('YYYY-MM-DD HH:mm:ss');
+    }
+    toTime() {
+        return moment(this).format('HH:mm:ss');
+    }
+    /**
+     * 根据格式化标识控制输出
+     */
+    toFormat(format_str = defaultDatetimeFormat) {
+        return dateFormat(format_str, this);
+    }
+    
     /**
      * 一个时间所属范围(年、季、月、周)中的第一天和最后一天
      * @param {CalendarTypes} type 选取范围的粒度枚举
      * @param {Object} options
-     *  - options.compleZero {Boolean} 是否为返回值的文本补齐 0，影响月份和日期文本 text 字段
+     *  - option.first_weekday {Integer} 当前周日期范围中，本周开始的第一天是星期几。默认为 0，代表星期日，取值范围为：[0~6]
+     *  - option.defaultDateFormat {String} 表示当前范围文本的格式化方式, 默认为 "yyyy-MM-dd"。当 type = WEEKOFMONTH 时，日期格式化还会影响返回对象中的 weeks 数组
      */
-    toBothDate(type = CalendarTypes.YEAR, { compleZero } = { compleZero: false }) {
+    toBothDate(type = CalendarTypes.YEAR, { first_weekday = 0, format_str = defaultDateFormat } = {}) {
         // 当前时间对象
-        // const date = anthorDate ? new Date(anthorDate) : this;
         const date = this;
+        // 断言
+        assert(Number.isInteger(first_weekday) && first_weekday >= 0 && first_weekday <= 6, 'option.first_weekday is not in the valid range: [0 - 6].');
         // 年份
         // const d: any = {};
         /**
@@ -152,12 +221,14 @@ class Calendar extends Date {
         const beginDay = { year: date.getFullYear() };
         const endDay = { year: date.getFullYear() };
         const bothDate = {}; // 需要返回的范围日期
+        bothDate.today = dateFormat(format_str, date); // 添加当前日的格式化
         // 月份核实
         if (type === CalendarTypes.YEAR) {
             beginDay.month = 0;
             beginDay.day = 1;
             endDay.month = 11;
             endDay.day = 31;
+            bothDate.dayOfYear = date.getDayOfYear();
         } else if (type === CalendarTypes.QUARTER) {
             // 按季度确定月份
             // Q1: 0 = [0,1,2]
@@ -189,6 +260,7 @@ class Calendar extends Date {
                 endDay.month = 11;
                 endDay.day = 31;
             }
+            bothDate.dayOfQuarter = date.getDayOfQuarter(); // 返回一个指定的日期对象为当前季度中的的第几天。
         }
         else if (type === CalendarTypes.MONTH) {
             const y = date.getFullYear();
@@ -197,9 +269,13 @@ class Calendar extends Date {
             beginDay.day = 1;
             endDay.month = m;
             endDay.day = getDayCountByMonth(m, y);
+            bothDate.dayOfMonth = date.getDate(); // 返回一个指定的日期对象为一个月中的哪一日（从1--31）。
         }
         else if (type === CalendarTypes.WEEK) {
-            const weekday = date.getDay();
+            const increment = (first_weekday === 0) ? 0 : (7 - first_weekday);
+            let weekday = date.getDay() + increment; // 根据本地时间返回指定日期对象的星期中的第几天（0-6）。'
+            if ( weekday >= 7 ) weekday = weekday % 7;
+
             const first = new Calendar(date);
             first.add(0 - weekday, CalendarTypes.DAY);
             const last = new Calendar(date);
@@ -211,12 +287,17 @@ class Calendar extends Date {
             endDay.year = last.getFullYear();
             endDay.month = last.getMonth();
             endDay.day = last.getDate();
+            bothDate.todayIndex = weekday;
         }
         else if (type === CalendarTypes.WEEKOFMONTH) {
-            const weekday = date.getDay(); // 根据本地时间返回指定日期对象的星期中的第几天（0-6）。
+            const increment = (first_weekday === 0) ? 0 : (7 - first_weekday);
+            let weekday = date.getDay() + increment; // 根据本地时间返回指定日期对象的星期中的第几天（0-6）。'
+            if ( weekday >= 7 ) weekday = weekday % 7;
             const first = new Calendar(date);
+            // first.setHours(0, 0, 0);
             first.add(0 - weekday, CalendarTypes.DAY);
             const last = new Calendar(date);
+            // last.setHours(23, 59, 59);
             last.add(6 - weekday, CalendarTypes.DAY);
             // 设置当前日子所在的周的开始和结束范围...
             beginDay.year = first.getFullYear();
@@ -227,10 +308,10 @@ class Calendar extends Date {
             endDay.day = last.getDate();
             // 设置当前月的所有包含的周列表(如包含上个月的日子,也添加)
             const firstIndex = 0, lastIndex = 6;
-            const stepDate = new Calendar(date.toDate());// date; //new Calendar(); // 步长日
-            // const stepDate = date;// date; //new Calendar(); // 步长日
+            const stepDate = new Calendar(date.toDatetime());// date; //new Calendar(); // 步长日
             const dayOfMonth = stepDate.getDate(); // 获取当前日子是本月的第几天
             stepDate.setDate(1);// 步长日, 从本月1日开始计算
+            const stepYear = stepDate.getFullYear(); // 步长年份
             const stepMonth = stepDate.getMonth(); // 步长月份
             const weeks = [];
             bothDate.todayIndex = -1; // 当前日期在 weeks 中若不存在, 则该值为 -1
@@ -239,25 +320,32 @@ class Calendar extends Date {
                 // 0. 定义周范围的日期对象
                 const onceWeek = {begin: null, end: null, isCurrentWeek: false, raw: null};
                 // 1. 查询当前日期是本周的第几天
-                const dayOfWeek = stepDate.getDay();
+                let dayOfWeek = stepDate.getDay() + increment;
+                if ( dayOfWeek >= 7 ) dayOfWeek = dayOfWeek % 7;
                 // 2. 如果不是 第一天(0),则向前 找补 n 天; 如果是, 则取今天为第一天
                 if(dayOfWeek !== firstIndex) {
                     stepDate.add( 0 - dayOfWeek, CalendarTypes.DAY);
                 }
                 // 3. 设置这一周的第一天
                 onceWeek.begin = stepDate.toDate();
+                stepDate.setHours(0, 0, 0); // 日期范围中的时间段, 重置
+                onceWeek.begin_format = dateFormat(format_str, stepDate);
                 onceWeek.beginDate = stepDate.getDate(); // 开始的日份
                 onceWeek.beginOfMonth = `${stepDate.getMonth() + 1}/${stepDate.getDate()}`;
                 onceWeek.raw = `${stepDate.getMonth() + 1}/${stepDate.getDate()}  ~  `; // 设置简单的展示方式
                 const weekMonthBegin = stepDate.getMonth(); // 本周开始日期的月份
+                const weekYearBegin = stepDate.getFullYear(); // 本周开始的年份
                 // 4. 以当前日期为基准加 6 天, 寻找本周末尾时间
                 stepDate.add( lastIndex, CalendarTypes.DAY);
                 // 5. 设置这一周的最后一天
                 onceWeek.end = stepDate.toDate();
+                stepDate.setHours(23, 59, 59); // 日期范围中的时间段, 重置
+                onceWeek.end_format = dateFormat(format_str, stepDate);
                 onceWeek.endDate = stepDate.getDate(); // 结束的日份
                 onceWeek.endOfMonth = `${stepDate.getMonth() + 1}/${stepDate.getDate()}`;
                 onceWeek.raw += `${stepDate.getMonth() + 1}/${stepDate.getDate()}`;
                 const weekMonthEnd = stepDate.getMonth(); // 本周结束日期的月份
+                const weekYearEnd = stepDate.getFullYear(); // 本周开始的年份
                 onceWeek.title = onceWeek.raw;
                 // 6. 判断是否是本周
                 if (stepMonth > weekMonthBegin && dayOfMonth <= onceWeek.endDate) {
@@ -267,6 +355,14 @@ class Calendar extends Date {
                 }
                 else if (stepMonth < weekMonthEnd && dayOfMonth >= onceWeek.beginDate) {
                     // 本周结束月份为下月, 但 对比日 大于等于本周开始日期时, 此周为 对比日 所在的周
+                    onceWeek.isCurrentWeek = true;
+                    bothDate.todayIndex = i; // 当前日期所在 weeks 数组的索引位置
+                }
+                else if ( (stepYear === weekYearBegin && stepYear !== weekYearEnd && dayOfMonth >= onceWeek.beginDate) || 
+                    (stepYear !== weekYearBegin && stepYear === weekYearEnd && dayOfMonth <= onceWeek.endDate)
+                ){//weekYearEnd
+                    // 当前日期所在的年份 与本周开始年份相同, 但与本周结束年份不同
+                    // 或者 当前日期所在的年份 与本周开始年份不同, 但与本周结束年份相同 时
                     onceWeek.isCurrentWeek = true;
                     bothDate.todayIndex = i; // 当前日期所在 weeks 数组的索引位置
                 }
@@ -286,30 +382,28 @@ class Calendar extends Date {
         }
 
         // 是否为 text 文本日期中的字段补齐 0
-        if (compleZero) {
-            beginDay.text = [beginDay.year, (beginDay.month + 1), beginDay.day].map( d => `${d}`[1] ? d : `0${d}`).join('-');
-            endDay.text = [endDay.year, (endDay.month + 1), endDay.day].map( d => `${d}`[1] ? d : `0${d}`).join('-');
-        } else {
-            beginDay.text = [beginDay.year, (beginDay.month + 1), beginDay.day].join('-');
-            endDay.text = [endDay.year, (endDay.month + 1), endDay.day].join('-');
-        }
+        // if (compleZero) {
+        //     beginDay.text = [beginDay.year, (beginDay.month + 1), beginDay.day].map( d => `${d}`[1] ? d : `0${d}`).join('-');
+        //     endDay.text = [endDay.year, (endDay.month + 1), endDay.day].map( d => `${d}`[1] ? d : `0${d}`).join('-');
+        // } else {
+        //     beginDay.text = [beginDay.year, (beginDay.month + 1), beginDay.day].join('-');
+        //     endDay.text = [endDay.year, (endDay.month + 1), endDay.day].join('-');
+        // }
+
+        // 格式化文本 defaultDateFormat
+        const beginDaytext = [beginDay.year, (beginDay.month + 1), beginDay.day].join('-').concat(' 00:00:00');
+        const endDaytext = [endDay.year, (endDay.month + 1), endDay.day].join('-').concat(' 23:59:59');
+
+        beginDay.text = dateFormat(format_str, new Date(beginDaytext));
+        endDay.text = dateFormat(format_str, new Date(endDaytext));
+
         // 设置返回结果
+        // bothDate.today = dateFormat(format_str, date);
         bothDate.beginDay = beginDay;
         bothDate.endDay = endDay;
         return bothDate;
     }
-    /**
-     * 获取最后一天(默认年)
-     */
-    // toLastDate() {
-    //     return moment(this).format('YYYY-MM-DD');
-    // }
-    toDatetime() {
-        return moment(this).format('YYYY-MM-DD HH:mm:ss');
-    }
-    toTime() {
-        return moment(this).format('HH:mm:ss');
-    }
+    
     equalsDate(otherDate) {
         if ((otherDate instanceof Date && !(otherDate instanceof Calendar)) || typeof otherDate === 'string') {
             return (new Calendar(otherDate)).toDate() === this.toDate();

@@ -1,6 +1,6 @@
 {
   "name": "calendar2",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "just a calendar tools",
   "main": "index.js",
   "keywords": [
@@ -11,11 +11,14 @@
     "test-base": "node test/base.test.js",
     "test-equals": "node test/equals.test.js",
     "test-both": "node test/both.test.js",
-    "test-add": "node test/add.test.js"
+    "test-add": "node test/add.test.js",
+    "test-df": "node test/format.test.js",
+    "test-days": "node test/days.test.js"
   },
   "author": "Alalabu",
   "license": "ISC",
   "dependencies": {
+    "date-format": "^3.0.0",
     "moment": "^2.24.0"
   }
 }
