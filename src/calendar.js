@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const assert = require('assert');
+// const assert = require('assert');
 const dateFormat = require('date-format');
 const defaultDateFormat = 'yyyy-MM-dd'; // 默认的日期格式
 const defaultDatetimeFormat = 'yyyy-MM-dd hh:mm:ss'; // 默认的日期时间格式
@@ -208,7 +208,10 @@ class Calendar extends Date {
         // 当前时间对象
         const date = this;
         // 断言
-        assert(Number.isInteger(first_weekday) && first_weekday >= 0 && first_weekday <= 6, 'option.first_weekday is not in the valid range: [0 - 6].');
+        // assert(Number.isInteger(first_weekday) && first_weekday >= 0 && first_weekday <= 6, 'option.first_weekday is not in the valid range: [0 - 6].');
+        if (!Number.isInteger(first_weekday) || first_weekday < 0 && first_weekday > 6) {
+            throw 'option.first_weekday is not in the valid range: [0 - 6].';
+        }
         // 年份
         // const d: any = {};
         /**
