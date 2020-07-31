@@ -18,6 +18,7 @@ var CalendarTypes;
     CalendarTypes["SECONDS"] = "SECONDS";
 })(CalendarTypes = exports.CalendarTypes || (exports.CalendarTypes = {}));
 ;
+// 获取当前月份有多少天
 const getDayCountByMonth = (month, year) => {
     switch (month) {
         case 0:
@@ -58,6 +59,135 @@ class Calendar extends Date {
         this.toDatetime = this.toDatetime.bind(this);
         this.valueOf = this.valueOf.bind(this);
     }
+    /** ***********************************************************
+     * 静态函数区域
+     */
+
+    /**
+     * 获取某范围内的所有日期单位, 范围确定方式:
+     * 1. 通过 `begin` 和 `end` 确定日期范围。优先级靠前（参数都满足的情况下优先使用方案1范围）
+     * 2. 通过 `seed` 作为当前的种子日期, 以 `incr` 作为种子增量, 范围为 seed ~ (seed + incr) 之间;
+     * 
+     * 以此两种方式, 遍历返回区间内所有的日期单位
+     * @param {Object} option 配置
+     * @param {String|Date} option.begin 起始日期
+     * @param {String|Date} option.end 结束日期
+     * @param {Number} option.incr 日期增量
+     * @param {String|Date} option.seed 日期种子
+     * @param {CalendarTypes} option.particle 粒度类型, 支持 DAY、MONTH、YEAR
+     * @param {String} option.format 格式化方式
+     * @param {String} option.order 排序方式, 可选值: [ASC, DESC]
+     */
+    static getDateUnits({
+        begin, end, incr, seed, particle = CalendarTypes.DAY,
+        format, order = 'ASC',
+    }) {
+        try {
+            // 1.粒度验证, 仅支持 DAY、MONTH、YEAR
+            if (particle !== CalendarTypes.DAY && particle !== CalendarTypes.MONTH && particle !== CalendarTypes.YEAR) {
+                throw `particle must between [DAY, MONTH, YEAR], but this particle is ${particle}`;
+            }
+            if (order !== 'ASC' && order !== 'DESC') {
+                throw `order must between [ACS, DESC], but order is ${order}.`;
+            }
+            // 为 format 做默认赋值
+            if (!format) {
+                switch (particle) {
+                    case CalendarTypes.DAY: format = defaultDateFormat; break;
+                    case CalendarTypes.MONTH: format = 'yyyy-MM'; break;
+                    case CalendarTypes.YEAR: format = 'yyyy'; break;
+                }
+            }
+            let bd, ed, begin_date, end_date;
+            // 2. 确定日期起至范围
+            if (begin && end) {
+                bd = new Calendar(begin);
+                ed = new Calendar(end);
+                if (bd > ed) { // 当 开始时间 > 结束时间时 (八成写反了,给他调正)
+                    const tmp = bd; bd = ed; ed = tmp;
+                }
+            } else if (incr && Number.isInteger(incr)) {
+                // seed 种子类型判断
+                if (!seed) {
+                    seed = new Date(); // 默认今日
+                } else if(typeof seed === 'string'){
+                    seed = new Date(seed); // 默认今日
+                } else if(!(seed instanceof Date)) {
+                    throw `seed is not a Date: ${seed}`;
+                }
+                // 确定范围
+                if (incr >= 0) {
+                    bd = new Calendar(seed);
+                    ed = new Calendar(seed);
+                    ed.add(incr, particle);
+                } else {
+                    ed = new Calendar(seed);
+                    bd = new Calendar(seed);
+                    bd.add(incr, particle);
+                }
+            } else {
+                throw `parameters are missing: ${JSON.stringify({begin, end, incr, seed})}`;
+            }
+            // 记录待返回的范围始末
+            begin_date = dateFormat(format, bd);
+            end_date = dateFormat(format, ed);
+            // 3. 为对比准确, 设定无用日期皆为该时间单位的第一位
+            bd.setHours(0, 0, 0, 0); 
+            ed.setHours(0, 0, 0, 0);
+            if (particle === CalendarTypes.MONTH) {
+                bd.setDate(1);
+                ed.setDate(1);
+            } else if (particle === CalendarTypes.YEAR) {
+                bd.setDate(1);
+                ed.setDate(1);
+                bd.setMonth(0);
+                ed.setMonth(0);
+            }
+            // 4. 根据粒度返回范围内的日期单位
+            const dates = [];
+            const tmpDay = (order === 'ASC') ? new Calendar(bd) : new Calendar(ed); // 获取范围里的第一天
+            const step = (order === 'ASC') ? 1 : -1; // 递增 或 递减 步长
+            while(1) {
+                if (order === 'ASC' && tmpDay > ed) {
+                    // console.log('退出: 当前 tmpDay: ',tmpDay.toDate());
+                    // console.log('退出: 当前 ed: ',ed.toDate());
+                    break; // 日期遍历完毕, 退出
+                }
+                if (order === 'DESC' && tmpDay < bd) {
+                    // console.log('退出: 当前 tmpDay: ',tmpDay.toDate());
+                    // console.log('退出: 当前 bd: ',bd.toDate());
+                    break; // 日期遍历完毕, 退出
+                }
+                if (particle === CalendarTypes.DAY) {
+                    dates.push({
+                        year: tmpDay.getFullYear(), month: tmpDay.getMonth(), day: tmpDay.getDate(), 
+                        txt: dateFormat(format, tmpDay),
+                    });
+                } else if (particle === CalendarTypes.MONTH) {
+                    dates.push({
+                        year: tmpDay.getFullYear(), month: tmpDay.getMonth(), txt: dateFormat(format, tmpDay),
+                    });
+                } else if (particle === CalendarTypes.YEAR) {
+                    dates.push({
+                        year: tmpDay.getFullYear(), txt: dateFormat(format, tmpDay),
+                    });
+                }
+                // 递增
+                // console.log('tmpDay 更新前: ', tmpDay.toDate(), step, particle);
+                tmpDay.add(step, particle);
+                // console.log('tmpDay 更新后: ', tmpDay.toDate(), step, particle);
+            }
+            // 返回数据
+            // return dates;
+            return {begin_date, end_date, dates};
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    /** ***********************************************************
+     * 实例函数区域
+     */
     /**
      * 更改时间差
      * @param value 时间变动的差值, 正值代表加时间, 负值代表减时间
@@ -69,7 +199,15 @@ class Calendar extends Date {
                 this.setFullYear(this.getFullYear() + value);
                 break;
             case CalendarTypes.MONTH:
-                this.setMonth(this.getMonth() + value);
+                const dayValue = 1; // 先设置为 1 日
+                const originMonthDay = this.getDate(); // 原日期的天数
+                this.setMonth(this.getMonth() + value, dayValue); // 改变月份
+                const newMonthDay = getDayCountByMonth(this.getMonth(), this.getFullYear()); // 新的月份的最大天数
+                if (originMonthDay > newMonthDay) {
+                    this.setDate(newMonthDay); // 最大日期
+                } else {
+                    this.setDate(originMonthDay); // 原日期
+                }
                 break;
             case CalendarTypes.WEEK:
                 this.setDate(this.getDate() + (value * 7));

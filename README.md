@@ -25,7 +25,7 @@ Description here.
 
 ## 使用场景
 
-`calendar2` 主要负责对于日期(时间)进行简单的计算操作。计算包括 **日期(时间)等值对比**、**日期范围计算**、**日期(时间)加减计算**等。calendar2 中包含两个主要对象 `Calendar` 和 `CalendarTypes`。
+`calendar2` 主要负责对于日期(时间)进行简单的计算操作。计算包括 **日期(时间)等值对比**、**日期范围计算**、**日期(时间)加减计算**、**罗列日期范围数组**等。calendar2 中包含两个主要对象 `Calendar` 和 `CalendarTypes`。
 
 1. **Calendar**：Calendar是一个日期包装类，继承自 `Date`。通过 `new Calendar()` 可以创建一个可以进行计算的日期对象。
 2. **CalendarTypes**：是一个枚举，属性包括 `YEAR`、`QUARTER`、`MONTH`、`WEEK`、`DAY`、`HOURS`、`MINUTES`、`SECONDS`。
@@ -80,7 +80,7 @@ const cal = new Calendar(); // 当前时间
 cal.add(-2, CalendarTypes.WEEK); // 表示在当前日期的基础上，减去两周时间
 ```
 
-## 基础函数部分
+# 基础函数部分
 
 ### getFullYear()
 > 获取当前日期中的年份, 同 `Date.prototype.getFullYear()`。
@@ -142,9 +142,9 @@ console.log('toFormat: ', now.toFormat('yyyy年MM月dd日 hh:mm:ss'));        //
 ```
 
 
-## 特殊函数部分
+# 特殊函数部分
 
-### equalsDate(otherDate)
+## 1. equalsDate(otherDate)
 > 由于 `object != object`, 因此函数简化了日期对比方式。
 > 
 > 对比一个日期，如果一致则返回 `true`，反之返回 `false`。
@@ -168,7 +168,7 @@ cal01.equalsDate(cal02); 		// 返回: true
 cal01.equalsDate('2020-01-02 12:12:12'); // 返回: false
 ```
 
-### equalsDateTime(otherDate)
+## 2. equalsDateTime(otherDate)
 > 由于 `object != object`, 因此函数简化了日期对比方式。
 > 
 > 对比一个日期和时间，如果一致则返回 `true`，反之返回 `false`。
@@ -192,7 +192,7 @@ cal01.equalsDateTime(cal02); 		// 返回: false
 cal01.equalsDateTime('2020-01-01 12:12:12'); // 返回: true
 ```
 
-### toBothDate(types, option)
+## 3. toBothDate(types, option)
 > 查询 **当前日期** 所处范围的 `开始日期` 和 `结束日期` 
 > 
 > -- `types` 可选枚举有：`YEAR`、`QUARTER`、`MONTH`、`WEEK`、`WEEKOFMONTH`。
@@ -311,7 +311,7 @@ cal.toBothDate(CalendarTypes.WEEK, {first_weekday: 1, format_str: 'yyyy年MM月d
 cal.toBothDate(CalendarTypes.WEEKOFMONTH);
 ```
 
-### add(value, types)
+## 4. add(value, types)
 > 在当前日期值基础上进行 **±** 运算
 > 
 > 函数并不会返回一个新值，**而是对原有 `Calendar` 对象进行日期变更。**
@@ -333,8 +333,171 @@ cal.add(3, CalendarTypes.WEEK); // 增加 3 周 :  2020-06-11 18:01:01
 cal.add(-2, CalendarTypes.MONTH); // 减少 2 月 :  2020-04-11 18:01:01
 cal.add(+11, CalendarTypes.HOURS); // 增加 11 小时 :  2020-04-12 05:01:01
 ```
+# 静态函数
+## 1. getDateUnits(option)
+> 获取某范围内的所有日期单位, 范围确定方式:
+> 
+> 1. 通过 `begin` 和 `end` 确定日期范围。优先级靠前（参数都满足的情况下优先使用方案1范围）
+> 
+> 2. 通过 `seed` 作为当前的种子日期, 以 `incr` 作为种子增量, 范围为 seed ~ (seed + incr) 之间;
+> 
+> 
+> `参数` : 
+> 
+> - **option.begin** [String|Date] 起始日期
+> 
+> - **option.end** [String|Date] 结束日期
+> 
+> - **option.incr** [Integer] 日期增量
+> 
+> - **option.seed** [String|Date] 日期种子
+> 
+> - **option.particle** [CalendarTypes] 粒度，仅支持：`YEAR`、`MONTH`、`DAY`，默认为： `CalendarTypes.DAY`
+> 
+> - **option.format** [String] 格式化方式，默认为 `yyyy-MM-dd`
+> 
+> - **option.order** [String] 排序方式, 支持方式: `ASC`(正序)、`DESC`(倒序), 默认为 `ASC`
+> 
+> `返回值` : `{begin_date, end_date, dates}`
+
+
+#### 示例1: 通过 `begin` 和 `end` 获取日期范围
+```js
+// 1-1 日范围筛选
+Calendar.getDateUnits({
+	begin: '2020-06-29',
+	end: '2020-07-4',
+});
+
+/**
+ * 1-1 返回值: 
+ * {
+ *   begin_date: '2020-06-29',
+ *   end_date: '2020-07-04',
+ *   dates: [
+ *     { year: 2020, month: 5, day: 29, txt: '2020-06-29' },
+ *     { year: 2020, month: 5, day: 30, txt: '2020-06-30' },
+ *     { year: 2020, month: 6, day: 1, txt: '2020-07-01' },
+ *     { year: 2020, month: 6, day: 2, txt: '2020-07-02' },
+ *     { year: 2020, month: 6, day: 3, txt: '2020-07-03' },
+ *     { year: 2020, month: 6, day: 4, txt: '2020-07-04' }
+ *   ]
+ * }
+ */
+
+
+
+// 1-2 月范围筛选
+Calendar.getDateUnits({
+	begin: '2020-11', // 范围可以只到月份
+	end: '2021-02-21', // 也可以是具体的日期字符串或 Date 对象
+	particle: CalendarTypes.MONTH,
+});
+
+/**
+ * 1-2 返回值: 
+ * {
+ *   begin_date: '2020-11',
+ *   end_date: '2021-02',
+ *   dates: [
+ *     { year: 2020, month: 10, txt: '2020-11' },
+ *     { year: 2020, month: 11, txt: '2020-12' },
+ *     { year: 2021, month: 0, txt: '2021-01' },
+ *     { year: 2021, month: 1, txt: '2021-02' }
+ *   ]
+ * }
+ */
+
+
+
+// 1-3 日范围筛选
+Calendar.getDateUnits({
+	begin: '2019-06-29',
+	end: '2025',
+	particle: CalendarTypes.YEAR,
+	order: 'DESC', // 倒序排序
+	format: 'yyyy年', // 格式化
+});
+
+/**
+ * 1-3 返回值: 
+ * {
+ *   begin_date: '2019年',
+ *   end_date: '2025年',
+ *   dates: [
+ *     { year: 2025, txt: '2025年' },
+ *     { year: 2024, txt: '2024年' },
+ *     { year: 2023, txt: '2023年' },
+ *     { year: 2022, txt: '2022年' },
+ *     { year: 2021, txt: '2021年' },
+ *     { year: 2020, txt: '2020年' },
+ *     { year: 2019, txt: '2019年' }
+ *   ]
+ * }
+ */
+
+```
+
+#### 示例2: 通过 `seed` 作为当前的种子日期, 以 `incr` 作为种子增量获取范围:
+```js
+// 2-1 日期向前增加 5 天 (返回包含 seed 日期的 6 条数据)
+Calendar.getDateUnits({
+	seed: '2020-06-29',
+	incr: 5,
+});
+
+/**
+ * 2-1 返回值: 
+ * {
+ *   begin_date: '2020-06-29',
+ *   end_date: '2020-07-04',
+ *   dates: [
+ *     { year: 2020, month: 5, day: 29, txt: '2020-06-29' },
+ *     { year: 2020, month: 5, day: 30, txt: '2020-06-30' },
+ *     { year: 2020, month: 6, day: 1, txt: '2020-07-01' },
+ *     { year: 2020, month: 6, day: 2, txt: '2020-07-02' },
+ *     { year: 2020, month: 6, day: 3, txt: '2020-07-03' },
+ *     { year: 2020, month: 6, day: 4, txt: '2020-07-04' }
+ *   ]
+ * }
+ */
+
+
+
+// 2-2 日期向后减少 5 天 (返回包含 seed 日期的 6 条数据)
+Calendar.getDateUnits({
+	seed: '2020-06-2',
+	incr: -5, // 增量给与负数
+});
+
+/**
+ * 2-2 返回值: 
+ * {
+ *   begin_date: '2020-05-28',
+ *   end_date: '2020-06-02',
+ *   dates: [
+ *     { year: 2020, month: 4, day: 28, txt: '2020-05-28' },
+ *     { year: 2020, month: 4, day: 29, txt: '2020-05-29' },
+ *     { year: 2020, month: 4, day: 30, txt: '2020-05-30' },
+ *     { year: 2020, month: 4, day: 31, txt: '2020-05-31' },
+ *     { year: 2020, month: 5, day: 1, txt: '2020-06-01' },
+ *     { year: 2020, month: 5, day: 2, txt: '2020-06-02' }
+ *   ]
+ * }
+ */
+```
 
 ## 更新日志
+> **v1.1.0**（2020-8-1）：
+>
+> 1. **添加** 静态函数 `getDateUnits(option)`, 以便获取相应时间范围包含的所有日期数组;
+> 
+> 2. **修复** `add()` 函数在当前日份 **大于 前进/后退的月中的日份** 时, 会丢失跳转精度的问题;
+> 
+> **v1.0.91**（2020-7-17）：
+> 
+> 1. **移除** `assert` 包工具的调用，避免微信小程序等其他环境中产生的包加载异常；
+> 
 > **v1.0.9**（2020-6-16）： ``
 > 
 > 1. **移除** `options.compleZero` 配置，所有返回的日期/时间文本，需要补齐 `0` 都会默认补齐；
